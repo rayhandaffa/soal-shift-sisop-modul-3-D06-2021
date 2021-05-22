@@ -28,17 +28,6 @@ int server_fd , new_socket , client_socket[30]= {0},max_clients = 30 , activity,
 fd_set readfds;
 bool loggedIn = false;
 
-void daftar(char str[])
-{
-    printf("DAFTAR USER\n");
-    char idpwd [100];
-    strcpy(idpwd,str);
-    printf("%s\n",idpwd);
-    FILE* file = fopen("akun.txt", "a") ;
-    fputs(idpwd,file);
-    fclose(file);
-}
-
 void resR() {
     memset(recieve,0,sizeof(recieve));
 }
@@ -56,6 +45,17 @@ void bRead() { // check Disconnects + Read vals
         }
         client_socket[29]=0;
     }
+}
+
+void daftar(char str[])
+{
+    printf("DAFTAR USER\n");
+    char idpwd [100];
+    strcpy(idpwd,str);
+    printf("%s\n",idpwd);
+    FILE* file = fopen("akun.txt", "a") ;
+    fputs(idpwd,file);
+    fclose(file);
 }
 
 void bReadCommand() { // check Disconnects + Read vals
@@ -99,6 +99,55 @@ bool LogUser(char str[]) {
 void sends(char data[]) {
     send(sd,data,strlen(data),0);
     memset(sent,0,sizeof(sent));
+}
+
+void writefile(char dir[]) {
+    FILE *file = fopen(dir,"w");
+    char buffer[1024]={0};
+
+    memset(buffer,0,sizeof(buffer));
+    int len = read(sd,buffer,1024);
+    fprintf(file,"%s",buffer);
+    
+    printf("break\n");
+    fclose(file);
+}
+
+void Add() { 
+    char publisher[1024] = {0};
+	char tahun[1024] = {0};
+	char path[1024] = {0};
+    sends("Publisher:");
+    bRead();
+    strcpy(publisher,recieve);
+    sends("Tahun Publish:");
+    bRead();
+    strcpy(tahun,recieve);
+    sends("Filepath:");
+    bRead();
+    strcpy(path,recieve);
+
+    char *ptr1;
+    char slash ='/';
+    ptr1 = strrchr( path, slash );
+    ptr1++;
+    char fname[100];
+    strcpy(fname,ptr1);
+    char ext[10];
+    char *ptr2;
+    char dot ='.';
+    ptr2 = strrchr( path, dot );
+    ptr2++;
+    strcpy(ext,ptr2);
+    char dir[300] = "/home/zulfa/Documents/modul3/shift3/FILES/";
+    strcat(dir,fname);
+    FILE* tsv = fopen("files.tsv","a");
+    char info[5000];
+    sprintf(info,"%s\t%s\t%s\t%s\t%s\n",fname,publisher,tahun,ext,path);
+    fputs(info,tsv);
+    fclose(tsv);
+    writefile(dir); 
+    sends("File berhasil ditambahkan\n");
 }
 
 int main(int argc, char const *argv[]) {  
@@ -207,7 +256,7 @@ int main(int argc, char const *argv[]) {
                 if (strcmp(choice,"register")==0)
                 {
                     printf("register\n");
-                    strcpy(sent,"Register\nMasukkan ID dan password");
+                    strcpy(sent,"Masukkan ID dan password");
                     send(new_socket,sent,strlen(sent),0);
                     bRead();
                     daftar(recieve);
@@ -216,7 +265,7 @@ int main(int argc, char const *argv[]) {
                 }
                 if (strcmp(choice,"login")==0) {
                     printf("login\n");
-                    sends("Login\nInput ID dan password");
+                    sends("Masukkan ID dan password");
                     bRead();
                     if (LogUser(recieve)) {
                         sprintf(sent,"Login sukses!\n");
@@ -227,6 +276,13 @@ int main(int argc, char const *argv[]) {
                     }
                         memset(recieve,0,sizeof(recieve));
                         continue;
+                    }
+                }
+
+                if(loggedIn==true) {
+                    if (strcmp(choice,"add")==0) {
+                        printf("Add\n");
+                        Add(); 
                     }
                 }
             }   
