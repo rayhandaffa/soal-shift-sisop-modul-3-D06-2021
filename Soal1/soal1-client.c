@@ -80,6 +80,36 @@ void Add()
     resR();
 }
 
+void download() {
+    resR();
+    char temp[1024];
+    scanf("%s",temp);
+    temp[strcspn(temp,"\n")] =0;
+    sends(temp);
+    read(sock,recieve,1024);
+    printf("%s\n",recieve);
+    if (recieve[5]=='d') {
+        char dir[300] = "/home/zulfa/Documents/modul3/shift3/";
+        strcat(dir,temp);
+        FILE *file = fopen(dir,"w");
+        char buffer[4096]={0};
+       
+            memset(buffer,0,sizeof(buffer));
+            int len = read(sock,buffer,4096); 
+            fprintf(file,"%s",buffer);
+        fclose(file);
+    }
+}
+
+void delete() {
+    // resR();
+    char temp[1024];
+    scanf("%s",temp);
+    temp[strcspn(temp,"\n")]=0;
+    sends(temp);
+    resR();
+}
+
 int main(int argc, char const *argv[]) {
     struct sockaddr_in address;
     struct sockaddr_in serv_addr;
@@ -126,6 +156,12 @@ int main(int argc, char const *argv[]) {
         }
         else if (strcmp(choice,"add")==0 && loggedIn) {
             Add();
+        }
+        else if (strcmp(choice,"download")==0 && loggedIn) {
+            download();
+        }
+        else if (strcmp(choice,"delete")==0 && loggedIn) {
+            delete();
         }
         else {
             printf("Command salah,perhatikan penulisan anda\n");
