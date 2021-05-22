@@ -58,6 +58,7 @@ char *checkExtension(char *dir)
     return lowercase(extension + 1); // change file extension to lowercase
 }
 
+// Function for categorizing files
 void *categorize(void *arg)
 {
     char *source = (char *)arg;
@@ -65,7 +66,7 @@ void *categorize(void *arg)
     char sourcePath[150];
     memcpy(sourcePath, (char *)arg, 400); // take the file path
 
-    char *ptrExtension = checkExt(source); // pointer to the file extension
+    char *ptrExtension = checkExtension(source); // pointer to the file extension
 
     char extension[400];
     strcpy(extension, ptrExtension); // copy from pointer to extension
@@ -85,6 +86,7 @@ void *categorize(void *arg)
     rename(sourcePath, destPath); // rename old path to new path
 }
 
+// Function to categorize folder
 void categorizeFolder(char *folderPath, int threadSize)
 {
     DIR *ptrFolderPath = opendir(folderPath);
@@ -207,9 +209,7 @@ int main(int argc, char *argv[])
     }
 
     else
-    {
         printf("Format input salah\n");
 
-        return 0;
-    }
+    return 0;
 }
