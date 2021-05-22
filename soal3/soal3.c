@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     else if (argc == 2 && strcmp(argv[1], "*") == 0)
     {
         char *current = getenv("PWD"); // get the path where the program runs
-        DIR *dir = opendir(current);
+        DIR *dir = opendir(current);   // open the current directory
 
         struct dirent *dirPath;
         int threadSize = 0;
