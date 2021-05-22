@@ -488,13 +488,12 @@ Pada soal 3d, diharuskan semua file ada di dalam folder, jika ada file yang tida
     ```
 
 - **Penjelasan dan Penyelesaian Soal 3e**<br>
-Pada soal 3e, setiap 1 file yang dikategorikan dioperasikan oleh 1 thread agar bisa berjalan secara paralel sehingga proses kategori bisa berjalan lebih cepat.<br>
-Sebagai contoh, pada bagian soal 3a dan soal 3c, dilakukan pemanggilan fungsi `categorizeFolder` secara rekursif yang memanfaatkan thread.<br>
-Pada soal 3b,
+Pada soal 3e, setiap 1 file yang dikategorikan dioperasikan oleh 1 thread agar bisa berjalan secara paralel sehingga proses kategori bisa berjalan lebih cepat. Sebagai contoh, pada bagian soal 3a dan soal 3c, dilakukan pemanggilan fungsi `categorizeFolder` secara rekursif yang memanfaatkan thread.<br>
+Berikut ini adalah pemanggilan fungsi `categorizeFolder` pada soal 3b.
     ```
     categorizeFolder(argv[2], threadSize); // recursive
     ```
-    Pada soal 3c,
+    Berikut ini adalah pemanggilan fungsi `categorizeFolder` pada soal 3c.
     ```
     categorizeFolder(current, threadSize); // call the categorizeFolder function
     ```
