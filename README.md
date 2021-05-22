@@ -319,12 +319,209 @@ Pada `soal2c` ini kita diminta untuk mengeck 5 proses teratas apa saja yang mema
 
 ## Penjelasan dan Penyelesaian soal no.3
 - **Penjelasan dan Penyelesaian Soal 3a**<br>
+Diminta untuk membuat program C untuk mengkategorikan file. Program C ini akan memindahkan file sesuai ekstensinya ke dalam folder. <br>
+Pada soal 3a, program diminta menerima opsi -f, sehingga pengguna dapat menambahkan argumen file yang dapat dikategorikan sebanyak yang diinginkan pengguna. <br>
+
+    ```
+    // soal3a
+    if (argc > 2 && strcmp(argv[1], "-f") == 0)
+    {
+        pthread_t tid[argc - 2]; // initialize thread
+        int count = 0;
+
+        for (int i = 2; i < argc; i++)
+        {
+            if (access(argv[i], F_OK) == 0)
+            {
+                pthread_create(&tid[count], NULL, categorize, (void *)argv[i]); // categorize file
+
+                printf("File %d : Berhasil Dikategorikan\n", i - 1);
+
+                count++;
+            }
+            else
+                printf("File %d : Sad, gagal :(\n", i - 1);
+        }
+
+        // as wait, join thread to wait for terminated
+        for (int i = 0; i < count; i++)
+            pthread_join(tid[i], NULL); // join thread
+
+        return 0;
+    }
+    ```
+    Pada program diatas, thread diinisialisasi dengan `pthread_t` dalam bentuk array `tid[argc - 2]`. Jika file dapat diakses, selanjutnya dapat dilakukan pengkategorian file dengan fungsi `pthread_create` dengan parameter `tid[count]`, `NULL`, `categorize`, dan `argv[i])`. Fungsi `categorize` adalah fungsi yang digunakan untuk mengkategorisasikan file. 
+    ```
+    pthread_create(&tid[count], NULL, categorize, (void *)argv[i]);
+    ```
+    Apabila file-file yang diinginkan telah dikategorikan, maka keluarkan output "File (i - 1) : Berhasil Dikategorikan". Dan ditambahkan join thread untuk menunggu terminasi, yang berfungsi sebagai wait antar thread.
+
 - **Penjelasan dan Penyelesaian Soal 3b**<br>
+Pada soal 3b, program diminta menerima opsi -d, sehingga pengguna dapat melakukan pengkategorian pada suatu directory. Namun pada opsi -d ini, user hanya bisa memasukkan input 1 directory saja.
+    ```
+    // soal3b
+        else if (argc == 3 && strcmp(argv[1], "-d") == 0)
+        {
+            DIR *directoryFile = opendir(argv[2]);
+
+            if (directoryFile)
+            {
+                struct dirent *dirPath;
+
+                int threadSize = 0;
+                while ((dirPath = readdir(directoryFile)) != NULL)
+                    if (dirPath->d_type == DT_REG) // check if it's regular file
+                        threadSize++;              // adjust thread size
+
+                categorizeFolder(argv[2], threadSize); // recursive
+
+                closedir(directoryFile);
+                printf("Direktori sukses disimpan!\n");
+            }
+            else if (ENOENT == errno)
+                printf("Yah, gagal disimpan :(\n"); // directory does not exist
+        }
+    ```
+    Pada program diatas, dilakukan pengecekan apakah `argv[1]` sama dengan "-d". Kemudian direktori dibuka, apabila direktori tersebut tidak ada maka cetak "Yah, gagal disimpan :(". Apabila direktori tersebut ada maka berlanjut ke proses selanjutnya.
+    
+    `threadSize` diinisialisi dengan nilai `0`. Dilakukan pengecekan, apabila `dirPath->d_type` merupakan file reguler, maka naikkan nilai `threadSize`. `threadSize` ini digunakan untuk menyimpan jumlah thread yang dibutuhkan. Setiap 1 file yang dikategorikan dioperasikan oleh 1 thread agar bisa berjalan secara paralel sehingga proses kategori bisa berjalan lebih cepat.
+
+    Kemudian, dilakukan pengkategorian folder dengan memanggil fungsi `categorizeFolder` yang dilakukan secara rekursif. Setelah selesai, tutup direktori dan cetak "Direktori sukses disimpan!".
+
 - **Penjelasan dan Penyelesaian Soal 3c**<br>
+Pada soal 3c, program diminta menerima opsi *, sehingga pengguna dapat mengkategorikan seluruh file yang ada di working directory ketika menjalankan program C tersebut.
+    ```
+    // soal3c
+        else if (argc == 2 && strcmp(argv[1], "*") == 0)
+        {
+            char *current = getenv("PWD"); // get the path where the program runs
+            DIR *dir = opendir(current);   // open the current directory
+
+            struct dirent *dirPath;
+            int threadSize = 0;
+
+            while ((dirPath = readdir(dir)) != NULL)
+                if (dirPath->d_type == DT_REG) // check if it's regular file
+                    threadSize++;              // adjust thread size
+
+            categorizeFolder(current, threadSize); // call the categorizeFolder function
+            closedir(dir);
+        }
+    ```
+    Pertama, dilakukan pengecekan apakah `argv[1]` sama dengan "*". Kemudian dipanggil fungsi `getenv("PWD")` untuk mendapatkan path dimana program berjalan dan path directory saat ini, `current`, dibuka.
+
+    `threadSize` diinisialisi dengan nilai `0`. Dilakukan pengecekan, apabila `dirPath->d_type` merupakan file reguler, maka naikkan nilai `threadSize`. `threadSize` ini digunakan untuk menyimpan jumlah thread yang dibutuhkan. Setiap 1 file yang dikategorikan dioperasikan oleh 1 thread agar bisa berjalan secara paralel sehingga proses kategori bisa berjalan lebih cepat.
+
+    Kemudian, dilakukan pengkategorian folder dengan memanggil fungsi `categorizeFolder` untuk path direktori saat ini, `current`, yang dilakukan secara rekursif. Setelah selesai, tutup direktori.
 - **Penjelasan dan Penyelesaian Soal 3d**<br>
+Pada soal 3d, diharuskan semua file ada di dalam folder, jika ada file yang tidak berekstensi maka file tersebut disimpan di folder "Unknown". Jika file tersebut hidden, masukkan ke folder "Hidden". Langkah ini diimplementasikan dengan fungsi `checkExtension`. 
+    ```
+    // Function to get file extension
+    char *checkExtension(char *dir)
+    {
+        char *unknown = {"Unknown"};
+        char *hidden = {"Hidden"};
+        char *temp = strrchr(dir, '/');
+        char extension[400];
+
+        if (temp[1] == '.')
+            return hidden; // hidden file
+
+        int i = 0;
+        while (i < strlen(temp) && temp[i] != '.')
+            i++; // checks for a 'dot' in the file name
+
+        if (i == strlen(temp))
+            return unknown; // unknown file
+
+        for (int j = i; i < strlen(temp); i++)
+            extension[i - j] = temp[i]; // get the file extension
+
+        return lowercase(extension + 1); // change file extension to lowercase
+    }
+    ```
+    Fungsi `checkExtension` ini digunakan untuk mengecek dan mendapatkan ekstensi dari file pada `source` yang sebelumnya di-passing oleh fungsi `categorize`.
+    
+    Pada fungsi `checkExtension` digunakan `strrchr(dir, '/')` untuk menemukan kemunculan terakhir karakter "/" dalam string dan nama file ditaruh dalam `temp`.
+
+    Jika `temp[1]` sama dengan '.' (titik), maka file tersebut adalah file hidden, return `"Hidden"`.
+
+    Lakukan perulangan untuk pengecekan '.' (titik) sampai akhir dari nama file. Lakukan increment pada variabel `i`, selama karakter yang diiterasi bukan '.' (titik).
+
+    Jika `i` sama dengan panjang nama file, maka tidak ada '.' (titik) di nama file, dengan kata lain, file tersebut tidak memiliki ekstensi, return `"Unknown"`. Jika tidak, lanjutkan ke proses selanjutnya.
+
+    Dilakukan iterasi untuk mendapatkan ekstensi dari nama file yang disimpan dalam array `extension`. Setelah itu, ubah ekstensi file menjadi huruf kecil dan return ekstensi tersebut.
+
+    Kemudian, dilakukan pengkategorian file dengan memanggil fungsi `categorize` untuk direktori saat ini, `current`. Jika direktori tidak ada, buat direktori baru dengan nama ekstensi. Jika file tersebut adalah file hidden, maka buat direktori bernama `"Hidden"`. Jika file tersebut adalah file yang tidak memiliki ekstensi, maka buat direktori bernama `"Unknown"`. String yang menyimpan ekstensi ditunjuk oleh pointer `*ptrExtension`.
+    ```
+    mkdir(ptrExtension, 0755); // if directory does not exist, create a new directory with an extension name
+    ```
+    Berikut ini adalah fungsi `categorize`.
+    ```
+    // Function for categorizing files
+    void *categorize(void *arg)
+    {
+        char *source = (char *)arg;
+
+        char sourcePath[150];
+        memcpy(sourcePath, (char *)arg, 400); // take the file path
+
+        char *ptrExtension = checkExtension(source); // pointer to the file extension
+
+        char extension[400];
+        strcpy(extension, ptrExtension); // copy from pointer to extension
+
+        DIR *dir = opendir(ptrExtension); // try to open the directory with the extension name
+        if (dir)
+            closedir(dir);
+        else if (ENOENT == errno)
+            mkdir(ptrExtension, 0755); // if directory does not exist, create a new directory with an extension name
+
+        char *ptrFileName = checkName(sourcePath); // get the file name
+        char *current = getenv("PWD");             // get the path where the program is run
+
+        char destPath[402];
+        sprintf(destPath, "%s/%s/%s", current, extension, ptrFileName); // concatenate the new path of the file
+
+        rename(sourcePath, destPath); // rename old path to new path
+    }
+    ```
+
 - **Penjelasan dan Penyelesaian Soal 3e**<br>
+Pada soal 3e, setiap 1 file yang dikategorikan dioperasikan oleh 1 thread agar bisa berjalan secara paralel sehingga proses kategori bisa berjalan lebih cepat.<br>
+Sebagai contoh, pada bagian soal 3a dan soal 3c, dilakukan pemanggilan fungsi `categorizeFolder` secara rekursif yang memanfaatkan thread.<br>
+Pada soal 3b,
+    ```
+    categorizeFolder(argv[2], threadSize); // recursive
+    ```
+    Pada soal 3c,
+    ```
+    categorizeFolder(current, threadSize); // call the categorizeFolder function
+    ```
+    Ketika memanggil fungsi `categorizeFolder`, dilakukan passing parameter `threadSize` yang merupakan banyak thread yang dibutuhkan yang telah dihitung sebelumnya untuk setiap file reguler dengan melakukan pengecekan iterasi sebagai berikut.
+    ```
+    int threadSize = 0;
+            while ((dirPath = readdir(directoryFile)) != NULL)
+                if (dirPath->d_type == DT_REG) // check if it's regular file
+                    threadSize++;              // adjust thread size
+    ```
+    Setelah masuk ke fungsi `categorizeFolder`, direktori dibuka dan dilakukan inisialisasi thread sebagai berikut.
+    ```
+    pthread_t tid[threadSize]; // initialize thread
+    ```
+    Setelah itu, dilakukan perulangan yang mana jika direktori path merupakan file biasa, maka dilakukan kombinasi path folder dan path file, lalu buat thread untuk mengkategorikan file tersebut. Jika file telah berhasil dikategorikan, tingkatkan nilai count untuk memproses file selanjutnya.
+    ```
+    if (dirPath->d_type == DT_REG)
+        // if it's a regular file
+        {
+            sprintf(fileName[count], "%s/%s", folderPath, dirPath->d_name); // file path in the folder
+
+            pthread_create(&tid[count], NULL, categorize, (void *)fileName[count]); // create thread to categorize files
+
+            count++;
+        }
+    ```
+
 ## Kendala yang dialami
-  1. xx
-  2. xx
-  3. xx
+  1. Kendala yang dialami dalam mengerjakan soal nomor 3 ini adalah pada saat mencoba soal 3a untuk mengkategorikan beberapa file, terdapat suatu error pada salah satu folder, sedangkan folder lainnya tidak. Folder yang bermasalah biasanya memiliki nama ekstensi yang sesuai tetapi disertai dengan simbol atau karakter tertentu setelah nama ekstensi.
 ## Output
