@@ -14,37 +14,45 @@ char sent[1024];
 char recieve[1024];
 char buff[1024];
 bool loggedIn=false;
-int soc;
+int sock;
 
-void Reg() {
-    read(soc,recieve,1024);
-    printf("%s\n",recieve);
-    memset(recieve,0,sizeof(recieve));
-    char id[50];
-    char pwd[50];
-    scanf("%s",id);
-    scanf("%s", pwd);
-    sprintf(sent,"%s:%s\n",id,pwd);
-    send(soc,sent,strlen(sent),0);
-    memset(sent,0,sizeof(sent));
-    read(soc,recieve,1024);
+void resR() {
+    read(sock,recieve,1024);
     printf("%s\n",recieve);
     memset(recieve,0,sizeof(recieve));
 }
 
+void sends(char data[]) {
+    send(sock,data,strlen(data),0);
+    memset(sent,0,sizeof(sent));
+}
+
+void Reg() {
+    char id[50];
+    char pwd[50];
+    resR();
+    scanf("%s",id);
+    scanf("%s", pwd);
+    
+    sprintf(sent,"%s:%s\n",id,pwd);
+    sends(sent);
+    // send(sock,sent,strlen(sent),0);
+    // memset(sent,0,sizeof(sent));
+    resR();
+}
+
 
 void Log() {
-    read(soc,recieve,1024);
-    printf("%s\n",recieve);
-    memset(recieve,0,sizeof(recieve));
+    resR();
     char id[50];
     char pwd[50];
     scanf("%s",id);
     scanf("%s", pwd);
     sprintf(sent,"%s:%s\n",id,pwd);
-    send(soc,sent,strlen(sent),0);
-    memset(sent,0,sizeof(sent));
-    read(soc,recieve,1024);
+    sends(sent);
+    // send(sock,sent,strlen(sent),0);
+    // memset(sent,0,sizeof(sent));
+    read(sock,recieve,1024);
     printf("%s\n",recieve);
     if(recieve[0]=='L'){
         loggedIn=true;
@@ -52,21 +60,30 @@ void Log() {
     memset(recieve,0,sizeof(recieve));
 }
 
-void resR() {
-    read(soc,recieve,1024);
-    printf("%s\n",recieve);
-    memset(recieve,0,sizeof(recieve));
-}
-
-void sends(char data[]) {
-    send(soc,data,strlen(data),0);
-    memset(sent,0,sizeof(sent));
+void Add()
+{
+    char temp[1024];
+    for (int i=0;i<3;i++) {
+        resR();
+        scanf("%s",temp);
+        temp[strcspn(temp,"\n")] =0;
+        sends(temp);
+    }
+    FILE *sfd = fopen(temp,"rb");  
+    char data[1024] = {0};
+    
+    memset(data,0,1024);
+    size_t size = fread(data,sizeof(char),1024,sfd);
+    send(sock,data,1024,0);
+    
+    fclose(sfd);
+    resR();
 }
 
 int main(int argc, char const *argv[]) {
     struct sockaddr_in address;
     struct sockaddr_in serv_addr;
-    if ((soc = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
         return -1;
     }
@@ -81,12 +98,12 @@ int main(int argc, char const *argv[]) {
         return -1;
     }
   
-    if (connect(soc, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         printf("\nConnection Failed \n");
         return -1;
     }
     else {
-        read(soc,recieve,1024);
+        read(sock,recieve,1024);
         printf("%s\n",recieve);
         memset(recieve,0,sizeof(recieve));
     }
@@ -98,7 +115,7 @@ int main(int argc, char const *argv[]) {
 
         scanf("%s",choice);
         strcpy(sent,choice);
-        send(soc,sent,strlen(sent),0);
+        send(sock,sent,strlen(sent),0);
         memset(sent,0,sizeof(sent));
        if (strcmp(choice,"register")==0){
             Reg();
@@ -106,6 +123,9 @@ int main(int argc, char const *argv[]) {
         }
         else if (strcmp(choice,"login")==0){
             Log();
+        }
+        else if (strcmp(choice,"add")==0 && loggedIn) {
+            Add();
         }
         else {
             printf("Command salah,perhatikan penulisan anda\n");
