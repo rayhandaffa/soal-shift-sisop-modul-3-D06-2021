@@ -523,7 +523,7 @@ Pada soal 3b,
     ```
 
 ## Kendala yang dialami
-  1. Kendala yang dialami dalam mengerjakan soal nomor 3 ini adalah pada saat mencoba soal 3a untuk mengkategorikan beberapa file, terdapat suatu error pada salah satu folder, sedangkan folder lainnya tidak. Folder yang bermasalah biasanya memiliki nama ekstensi yang sesuai tetapi disertai dengan simbol atau karakter tertentu setelah nama ekstensi.
+  1. Kendala yang dialami dalam mengerjakan soal nomor 3 ini adalah pada saat mencoba soal 3a untuk mengkategorikan beberapa file, terdapat suatu error pada salah satu folder, sedangkan folder lainnya tidak. Folder yang bermasalah biasanya memiliki nama ekstensi yang sesuai tetapi disertai dengan simbol atau karakter tertentu setelah nama ekstensi. Error output dapat dilihat pada screenshot output hasil no 3a.
 ## Output 
   1. 3a <br>
   Ouput hasil no 3a dapat dilihat di bawah ini:<br>
