@@ -524,4 +524,13 @@ Pada soal 3b,
 
 ## Kendala yang dialami
   1. Kendala yang dialami dalam mengerjakan soal nomor 3 ini adalah pada saat mencoba soal 3a untuk mengkategorikan beberapa file, terdapat suatu error pada salah satu folder, sedangkan folder lainnya tidak. Folder yang bermasalah biasanya memiliki nama ekstensi yang sesuai tetapi disertai dengan simbol atau karakter tertentu setelah nama ekstensi.
-## Output
+## Output 
+  1. 3a <br>
+  Ouput hasil no 3a dapat dilihat di bawah ini:<br>
+   ![soal3](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal3/output3a.png)<br> 
+  2. 3b<br>
+  Ouput hasil no 3b dapat dilihat di bawah ini: <br> 
+  ![soal3](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal3/output3b.png)<br> 
+  3. 3c<br> 
+  Ouput hasil no 3c dapat dilihat di bawah ini: <br> 
+  ![soal3](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal3/output3c.png)<br>
