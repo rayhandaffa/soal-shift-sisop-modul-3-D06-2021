@@ -150,6 +150,94 @@ void Add() {
     sends("File berhasil ditambahkan\n");
 }
 
+void download () {
+    sends("namafile.extension\n");
+    bRead();
+    bool flag;
+    char find[200];
+    recieve[strcspn(recieve,"\n")] =0;
+    strcpy(find,recieve);
+    FILE* file = fopen("files.tsv", "r");
+    char lines[1024];
+    char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+    while (fgets(lines,1024,file)) {
+        // char *token;
+        // char found[100];
+        // char *linesz = lines;
+        // char *rest;
+        // token = strtok_r(linesz,"\t",&rest);
+        // strcpy(found,token);
+        sscanf(lines,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+        if (strcmp(find,filename)==0){
+            flag = true;
+            break;
+        }
+    }
+    if (flag==true) {
+        sends("File ditemukan\n");
+        char temp[104]="/home/zulfa/Documents/modul3/shift3/FILES/";
+        strcat(temp,find);
+        FILE *sfd = fopen(temp,"rb");  
+        char data[4096] = {0};
+
+        memset(data,0,4096);
+        size_t size = fread(data,sizeof(char),4096,sfd);
+        send(sd,data,strlen(data),0);
+
+        // printf("break");
+        fclose(sfd);
+    }
+    else {
+        sends("File tidak ditemukan\n");
+    }
+}
+
+void delete() {
+    // sends("namafile.extension\n");
+    bRead();
+    bool flag = false;
+    char finds[1024]={0};
+    strcpy(finds,recieve);
+    printf("%s\n",finds);
+    FILE* fileR = fopen("files.tsv","r");
+    FILE* fileW = fopen("temp.tsv","w");
+    char data[1024] = {0};
+    char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+    while(fgets(data,1024,fileR)!=NULL){
+        sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+        if (strcmp(filename,finds)!=0) {
+        fprintf(fileW,"%s",data);
+        } 
+        if (strcmp(filename,finds)==0){
+            flag = true;
+        }
+        bzero(data,1024);
+    }
+    fclose(fileW);
+    fclose(fileR);
+    if (flag == true) {
+    remove("files.tsv");
+    rename("temp.tsv","files.tsv");
+    // FILE* log = fopen("running.log","a");
+    // fprintf(log,"Hapus: %s %s",finds,upass);
+    // fclose(log);
+    char oldFile[200]= {0};
+    char renamed[200]={0};
+    char temp[104]="/home/zulfa/Documents/modul3/shift3/FILES/";
+    strcat(oldFile,temp);
+    strcat(renamed,temp);
+    strcat(oldFile,finds);
+    strcat(renamed,"old-");
+    strcat(renamed,finds);
+//    printf("d");
+    rename(oldFile,renamed);
+    sends("Delete sukses\n");
+    }
+    else {
+        sends("File tidak ditemukan\n");
+    }
+}
+
 int main(int argc, char const *argv[]) {  
     struct sockaddr_in address;
     int opt = 1;
@@ -283,6 +371,14 @@ int main(int argc, char const *argv[]) {
                     if (strcmp(choice,"add")==0) {
                         printf("Add\n");
                         Add(); 
+                    }
+                    else if(strcmp(choice,"download")==0) {
+                        printf("Download\n");
+                        download();
+                    }
+                    else if(strcmp(choice,"delete")==0) {
+                        printf("Delete\n");
+                        delete();
                     }
                 }
             }   
