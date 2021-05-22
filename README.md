@@ -6,13 +6,334 @@ Kelompok :
 3. Rayhan Daffa Alhafish - 05111940000227
 
 ## Penjelasan dan Penyelesaian soal no.1
+Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membuat database. Dimana pada halaman menu utama database terdapat menu `register` dan `login`, dan jika pengguna sudah melakuakan login terdapat menu `add` untuk menambah database, `download` untuk mendownload file yang terdapat pada database, `delete` untuk menghapus file yang terdapat pada database, `see` untuk melihat isi database, dan `find` untuk mencari file yang terdapa pada database.
 - **Penjelasan dan Penyelesaian Soal 1a**<br>
+  Pada soal 1a ini kita diminta untuk membuat opsi login dan register yang berisi inputan id dan password. Data id dan password ini disimpan pada file `akun.txt` dengan format `id:password`. Pertama dibuat fungsi untuk register pada aplikasi server.
+  ```
+    void daftar(char str[])
+  {
+      printf("DAFTAR USER\n");
+      char idpwd [100];
+      strcpy(idpwd,str);
+      printf("%s\n",idpwd);
+      FILE* file = fopen("akun.txt", "a") ;
+      fputs(idpwd,file);
+      fclose(file);
+  }
+  ```
+  Fungsi ini dipanggil oleh fungsi pada aplikasi client sebagai berikut
+  ```
+    void Reg() {
+      char id[50];
+      char pwd[50];
+      resR();
+      scanf("%s",id);
+      scanf("%s", pwd);
+
+      sprintf(sent,"%s:%s\n",id,pwd);
+      sends(sent);
+      resR();
+    }
+  ```
+  Pada fungsi di atas, program dimulai dengan menyimpan id dan password pengguna pada aplikasi client, karena untuk disimpan ke dalam file harus dalam bentuk `id:password` maka data disimpan dengan bentuk yang diubah untuk disesuaikan. Lalu data yang sudah di buat dikirim ke aplikasi server untuk nantinya di simpan pada file `akun.txt`.
+  Pada fungsi `Reg()` terdapat fungsi `sends()` dan `resR()` untuk mempercepat saat pembuatan fungsi untuk mengirim dan menerima command yang akan digunakan.
+  Lalu dibuat fungsi login pada aplikasi register
+  ```
+    bool LogUser(char str[]) {
+      printf("User Login\n");
+      char idpwd [100];
+      strcpy(idpwd,str);
+      printf("%s\n",idpwd);
+      char *id;
+      char tok[2]=":";
+      char find[100];
+      FILE* file = fopen("akun.txt","r");
+      while (fgets(find,100,file)) {
+          // printf("%s%s\n",find,idpwd);
+          if (strcmp(find,idpwd)==0) {
+              strcpy(upass,idpwd);
+              fclose(file);
+              id = strtok(idpwd,tok);
+              strcpy(user,id);
+              loggedIn = true;
+              return true;
+          }
+      }
+      return false;
+    }
+    ```
+  Fungsi ini dipanggil oleh fungsi pada aplikasi client sebagai berikut
+  ```
+  void Log() {
+      resR();
+      char id[50];
+      char pwd[50];
+      scanf("%s",id);
+      scanf("%s", pwd);
+      sprintf(sent,"%s:%s\n",id,pwd);
+      sends(sent);
+      read(sock,recieve,1024);
+      printf("%s\n",recieve);
+      if(recieve[0]=='L'){
+          loggedIn=true;
+      }
+      memset(recieve,0,sizeof(recieve));
+  }
+  ```
+  Pada fungsi `Log()` di aplikasi client ini, pengguna diminta memasukkan id dan password yang sudah didaftarkan, lalu data yang dimasukkan dibuat menjadi seperti data di file `akun.txt` setelah diubah bentuknya string ini di kirim dengan menggunakan `sends()` ke aplikasi server untuk dibandingkan dengan data string akun yang sudah ada, jika terdapat string yang sama dimana artinya id dan password yang dimasukkan sudah benarvmaka pengguna akan masuk ke dalam server.<br>
+  Selain itu soal ini juga meminta untuk membuat sistem yang dapat menerima multi-connections. Koneksi terhitung ketika aplikasi client tersambung dengan server. Jika terdapat 2 koneksi atau lebih maka harus menunggu sampai client pertama keluar untuk bisa melakukan login dan mengakses aplikasinya. Oleh karena itu dibuat fungsi main pada aplikasi server sebagai berikut.
+  ```
+    int main(int argc, char const *argv[]) {  
+      struct sockaddr_in address;
+      int opt = 1;
+      int addrlen = sizeof(address);
+
+      DIR* dir = opendir("FILES");
+      if (dir) {
+          closedir(dir);
+      } else if (ENOENT == errno) {
+          mkdir("FILES", 0777);
+      }
+
+      if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+          perror("socket failed");
+          exit(EXIT_FAILURE);
+      }
+
+      if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt,sizeof(opt)) <0 ) {
+          perror("setsockopt");
+          exit(EXIT_FAILURE);
+      }
+
+      address.sin_family = AF_INET;
+      address.sin_addr.s_addr = INADDR_ANY;
+      address.sin_port = htons( PORT );
+
+      if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
+          perror("bind failed");
+          exit(EXIT_FAILURE);
+      }
+
+      if (listen(server_fd, 3) < 0) {
+          perror("listen");
+          exit(EXIT_FAILURE);
+      }
+      while(1) {
+          //clear the socket set 
+          FD_ZERO(&readfds);  
+
+          //add master socket to set 
+          FD_SET(server_fd, &readfds);  
+          max_sd = server_fd;  
+
+          //add child sockets to set 
+          for ( i = 0 ; i < max_clients ; i++)  
+          {  
+              //socket descriptor 
+              sd = client_socket[i];  
+
+              //if valid socket descriptor then add to read list 
+              if(sd > 0)  
+                  FD_SET( sd , &readfds);  
+
+              //highest file descriptor number, need it for the select function 
+              if(sd > max_sd)  
+                  max_sd = sd;  
+          } 
+           //wait for an activity on one of the sockets , timeout is NULL , 
+          //so wait indefinitely 
+          activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);  
+
+          if ((activity < 0) && (errno!=EINTR))  
+          {  
+              printf("select error");  
+          }  
+
+          //If something happened on the master socket , 
+          //then its an incoming connection 
+          if (FD_ISSET(server_fd, &readfds))  
+          {  
+              if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)  
+              {  
+                  perror("accept");  
+                  exit(EXIT_FAILURE);  
+              }
+               for (i = 0; i < max_clients; i++)  
+              {  
+                  //if position is empty 
+                  if( client_socket[i] == 0 )  
+                  {  
+                      client_socket[i] = new_socket;  
+                      printf("Adding to list of sockets as %d\n" , i);  
+
+                      break;  
+                  }  
+              }  
+          }
+          sd = client_socket[0];
+          connected = true;
+          printf("CONNECTED\n");
+          ...
+      return 0;
+  }
+   ```
 - **Penjelasan dan Penyelesaian Soal 1b**<br>
+  Pada soal 1b ini meminta kita untuk membuat folder `FILES` secara otomatis jika server mulai dijalankan.
+  ```
+    DIR* dir = opendir("FILES");
+      if (dir) {
+          closedir(dir);
+      } else if (ENOENT == errno) {
+          mkdir("FILES", 0777);
+      }
+   ```
+   Selain itu, diminta juga untuk membuat file `files.tsv` yang berisi path file saat berada di server, publisher, dan tahun publikasi. Setiap penambahan dan penghapusan file pada folder file yang bernama  `FILES` pada server akan memengaruhi isi dari file ini. Oleh karena itu file ini akan selalu dipanggil pada saat menjalankan fungsi menambahkan dan mengurangi file.
 - **Penjelasan dan Penyelesaian Soal 1c**<br>
+  Pada soal 1c kita diminta untuk membuat fitur untuk penambahan file pada server dengan memberikan command `add`.<br>
+  Fungsi yang digunakan pada aplikasi server
+  ```
+      void writefile(char dir[]) {
+      FILE *file = fopen(dir,"w");
+      char buffer[1024]={0};
+
+      memset(buffer,0,sizeof(buffer));
+      int len = read(sd,buffer,1024);
+      fprintf(file,"%s",buffer);
+
+      printf("break\n");
+      fclose(file);
+  }
+
+    void Add() { 
+      char publisher[1024] = {0};
+      char tahun[1024] = {0};
+      char path[1024] = {0};
+      sends("Publisher:");
+      bRead();
+      strcpy(publisher,recieve);
+      sends("Tahun Publish:");
+      bRead();
+      strcpy(tahun,recieve);
+      sends("Filepath:");
+      bRead();
+      strcpy(path,recieve);
+
+      char *ptr1;
+      char slash ='/';
+      ptr1 = strrchr( path, slash );
+      ptr1++;
+      char fname[100];
+      strcpy(fname,ptr1);
+      char ext[10];
+      char *ptr2;
+      char dot ='.';
+      ptr2 = strrchr( path, dot );
+      ptr2++;
+      strcpy(ext,ptr2);
+      char dir[300] = "/home/zulfa/Documents/modul3/shift3/FILES/";
+      strcat(dir,fname);
+      FILE* tsv = fopen("files.tsv","a");
+      char info[5000];
+      sprintf(info,"%s\t%s\t%s\t%s\t%s\n",fname,publisher,tahun,ext,path);
+      fputs(info,tsv);
+      fclose(tsv);
+      writefile(dir); 
+      sends("File berhasil ditambahkan\n");
+   }
+  ```
+  Fungsi ini dipanggil dengan fungsi pada aplikasi client
+  ```
+    void Add()
+    {
+        char temp[1024];
+        for (int i=0;i<3;i++) {
+            resR();
+            scanf("%s",temp);
+            temp[strcspn(temp,"\n")] =0;
+            sends(temp);
+        }
+        FILE *sfd = fopen(temp,"rb");  
+        char data[1024] = {0};
+
+        memset(data,0,1024);
+        size_t size = fread(data,sizeof(char),1024,sfd);
+        send(sock,data,1024,0);
+
+        fclose(sfd);
+        resR();
+    }
+  ```
+  Pada tahap ini, aplikasi client memanggil beberapa string dari fungsi add pada aplikasi server, karena diminta untuk menginput sebanyak 3 kali maka fungsi pemanggilan string dan pengiriman string dilakukan looping sebanyak 3 kali. Karena dibutuhkan juga data nama file dan jenis ekstensi dari file yang ditambahakan untuk disimpan, maka string path yang telah di input dipotong dengan menggunakan `ptr1 = strrchr( path, slash )` dan untuk mengambil data nama file. Selain itu digunakan juga fungsi `ptr2 = strrchr( path, dot)` untuk mengambil data nama ekstensi file. Lalu dipanggil juga fungsi `void writefile()` untuk memasukkan data yang diinginkan ke dalam folder `FILES`.
+  
 - **Penjelasan dan Penyelesaian Soal 1d**<br>
+  Pada soal ini kita diminta untuk membuat fitur dimana client dapat mendownload file yang telah ada dalam folder `FILES` di server, sehingga sistem harus dapat mengirim file ke client dengan memberikan command `download`.<br>
+  Fungsi yang digunakan pada aplikasi server
+  ```
+    void download () {
+      sends("namafile.extension\n");
+      bRead();
+      bool flag;
+      char find[200];
+      recieve[strcspn(recieve,"\n")] =0;
+      strcpy(find,recieve);
+      FILE* file = fopen("files.tsv", "r");
+      char lines[1024];
+      char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+      while (fgets(lines,1024,file)) {
+          sscanf(lines,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+          if (strcmp(find,filename)==0){
+              flag = true;
+              break;
+          }
+      }
+      if (flag==true) {
+          sends("File ditemukan\n");
+          char temp[104]="/home/zulfa/Documents/modul3/shift3/FILES/";
+          strcat(temp,find);
+          FILE *sfd = fopen(temp,"rb");  
+          char data[4096] = {0};
+
+          memset(data,0,4096);
+          size_t size = fread(data,sizeof(char),4096,sfd);
+          send(sd,data,strlen(data),0);
+
+          fclose(sfd);
+      }
+      else {
+          sends("File tidak ditemukan\n");
+      }
+  ```
+  Fungsi ini dipanggil dengan fungsi pada aplikasi client
+  ```
+    void download() {
+      resR();
+      char temp[1024];
+      scanf("%s",temp);
+      temp[strcspn(temp,"\n")] =0;
+      sends(temp);
+      read(sock,recieve,1024);
+      printf("%s\n",recieve);
+      if (recieve[5]=='d') {
+          char dir[300] = "/home/zulfa/Documents/modul3/shift3/";
+          strcat(dir,temp);
+          FILE *file = fopen(dir,"w");
+          char buffer[4096]={0};
+
+              memset(buffer,0,sizeof(buffer));
+              int len = read(sock,buffer,4096); 
+              fprintf(file,"%s",buffer);
+          fclose(file);
+      }
+  }
+  ```
+  Dimana pada client, pengguna diminta untuk menginput dengan format `namafile.extension` lalu dilakukan pencarian pada server dengan `strcmp(find,filename` untuk membandingakn string yang dicari dengan string yang sudah ada pada database. Jika ditemukan yang sama, maka file akan di dikirim ke client.
+  
 - **Penjelasan dan Penyelesaian Soal 1e**<br>
+- **Penjelasan dan Penyelesaian Soal 1f**<br>
+- **Penjelasan dan Penyelesaian Soal 1g**<br>
+- **Penjelasan dan Penyelesaian Soal 1h**<br>
 ## Kendala yang dialami
-  1. xx
+  1. Pada 1d output yang keluar pada terminal client masih bermasalah jika dilanjutkan dengan input baru.
   2. xx
   3. xx
 ## Output
