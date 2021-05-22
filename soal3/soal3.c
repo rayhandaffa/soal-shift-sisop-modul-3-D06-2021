@@ -137,9 +137,7 @@ void categorizeFolder(char *folderPath, int threadSize)
 int main(int argc, char *argv[])
 {
     if (argc == 0)
-    {
         exit(EXIT_FAILURE);
-    }
 
     // soal3a
     if (argc > 2 && strcmp(argv[1], "-f") == 0)
