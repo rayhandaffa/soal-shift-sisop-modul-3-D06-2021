@@ -35,22 +35,22 @@ char *lowercase(char *str)
 }
 
 // Function to get file extension
-char *checkExt(char *dir)
+char *checkExtension(char *dir)
 {
-    char *unk = {"Unknown"};
-    char *hid = {"Hidden"};
+    char *unknown = {"Unknown"};
+    char *hidden = {"Hidden"};
     char *temp = strrchr(dir, '/');
     char extension[400];
 
     if (temp[1] == '.')
-        return hid; // hidden file
+        return hidden; // hidden file
 
     int i = 0;
     while (i < strlen(temp) && temp[i] != '.')
         i++; // checks for a 'dot' in the file name
 
     if (i == strlen(temp))
-        return unk; // unknown file
+        return unknown; // unknown file
 
     for (int j = i; i < strlen(temp); i++)
         extension[i - j] = temp[i]; // get the file extension
