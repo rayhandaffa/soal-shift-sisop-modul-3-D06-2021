@@ -179,7 +179,7 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
    ```
   
   **Output**
-   
+   ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/1a.jpg)<br>
 - **Penjelasan dan Penyelesaian Soal 1b**<br>
   Pada soal 1b ini meminta kita untuk membuat folder `FILES` secara otomatis jika server mulai dijalankan.
   ```
@@ -272,6 +272,9 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
   Pada tahap ini, aplikasi client memanggil beberapa string dari fungsi add pada aplikasi server, karena diminta untuk menginput sebanyak 3 kali maka fungsi pemanggilan string dan pengiriman string dilakukan looping sebanyak 3 kali. Karena dibutuhkan juga data nama file dan jenis ekstensi dari file yang ditambahakan untuk disimpan, maka string path yang telah di input dipotong dengan menggunakan `ptr1 = strrchr( path, slash )` dan untuk mengambil data nama file. Selain itu digunakan juga fungsi `ptr2 = strrchr( path, dot)` untuk mengambil data nama ekstensi file. Lalu dipanggil juga fungsi `void writefile()` untuk memasukkan data yang diinginkan ke dalam folder `FILES`.<br>
 
   **Output**
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/terminal%201c.jpg)<br>
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/folder%201c.jpg)<br>
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/tsf%201c.jpg)<br>
   
 - **Penjelasan dan Penyelesaian Soal 1d**<br>
   Pada soal ini kita diminta untuk membuat fitur dimana client dapat mendownload file yang telah ada dalam folder `FILES` di server, sehingga sistem harus dapat mengirim file ke client dengan memberikan command `download`.<br>
@@ -337,6 +340,8 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
   Dimana pada client, pengguna diminta untuk menginput dengan format `namafile.extension` lalu dilakukan pencarian pada server dengan `strcmp(find,filename)` untuk membandingakn string yang dicari dengan string yang sudah ada pada database. Jika ditemukan yang sama, maka file akan di dikirim ke client.<br>
   
   **Output**
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/terminal%201d.jpg)<br>
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/folder%201d.jpg)<br>
   
 - **Penjelasan dan Penyelesaian Soal 1e**<br>
   Pada soal 1e kita diminta menambahkan fitur agar client juga dapat menghapus file yang tersimpan di server. Namun pada folder `FILE` file yang dihapus hanya akan diganti namanya menjadi `old-NamaFile.ekstensi`. Ketika file telah diubah namanya, maka row dari file tersebut di file.tsv akan terhapus. Fitur ini dipanggil dengan menggunakan command `delete` pada client. Fungsi yang digunakan oleh server.
@@ -403,6 +408,9 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
   Selain itu dilakukan juga perbandingan string dengan files yang terdapat pada folder`FILES`. Jika ditemukan file dengan nama string yang sama, maka file tersebut akan direname menjadi `old-NamaFile.ekstensi`.<br>
   
   **Output**
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/terminal%201e.jpg)<br>
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/folder%201e.jpg)<br>
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/tsv%201e.jpg)<br>
   
 - **Penjelasan dan Penyelesaian Soal 1f**<br>
   Pada soal 1f kita diminta untuk membuat fitur see dimana client dapat melihat semua isi `files.tsv`. Fungsi ini dipanggil dengan memberikan command `see` pada client. Fungsi yang digunakan oleh server.
@@ -443,6 +451,7 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
   Lalu string ini dikirim satu persatu ke client untuk di print.<br>
   
   **Output**
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/1f.jpg)<br>
   
 - **Penjelasan dan Penyelesaian Soal 1g**<br>
 Pada soal 1g kita diminta untuk membuat fitur pencarian dengan memberikan suatu string. Hasilnya adalah semua nama file yang mengandung string tersebut. Fungsi yang digunakan oleh server.
@@ -499,6 +508,7 @@ Pada soal 1g kita diminta untuk membuat fitur pencarian dengan memberikan suatu 
   ```
   
   **Output**
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/1g.jpg)<br>
   
 - **Penjelasan dan Penyelesaian Soal 1h**<br>
 Pada soal 1h kita diminta untuk mencatat penambahan dan penghapusan file pada server di `running.log`. Oleh karena itu pada saat memanggil fingsi menambahakan dan menghapus file pada server ditambahkan fungsi untuk mencatat pada `running.log`.
@@ -521,11 +531,10 @@ Pada soal 1h kita diminta untuk mencatat penambahan dan penghapusan file pada se
   ```
   
   **Output**
+  ![output](https://github.com/rayhandaffa/soal-shift-sisop-modul-3-D06-2021/blob/main/soal1/output/1h.jpg)<br>
   
 ## Kendala yang dialami
-  1. Pada 1d output yang keluar pada terminal client masih bermasalah jika dilanjutkan dengan input baru.
-  2. xx
-  3. xx
+  1. Pada 1d output yang keluar pada terminal client kadang masih bermasalah.<br>
 
 ## Penjelasan dan Penyelesaian soal no.2
 - **Penjelasan dan Penyelesaian Soal 2a**<br>
