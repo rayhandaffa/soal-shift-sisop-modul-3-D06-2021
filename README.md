@@ -177,6 +177,9 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
       return 0;
   }
    ```
+  
+  **Output**
+   
 - **Penjelasan dan Penyelesaian Soal 1b**<br>
   Pada soal 1b ini meminta kita untuk membuat folder `FILES` secara otomatis jika server mulai dijalankan.
   ```
@@ -239,6 +242,9 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
       fclose(tsv);
       writefile(dir); 
       sends("File berhasil ditambahkan\n");
+      FILE* log = fopen("running.log","a");
+      fprintf(log,"Tambah: %s %s",fname,upass);
+      fclose(log);
    }
   ```
   Fungsi ini dipanggil dengan fungsi pada aplikasi client
@@ -263,7 +269,9 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
         resR();
     }
   ```
-  Pada tahap ini, aplikasi client memanggil beberapa string dari fungsi add pada aplikasi server, karena diminta untuk menginput sebanyak 3 kali maka fungsi pemanggilan string dan pengiriman string dilakukan looping sebanyak 3 kali. Karena dibutuhkan juga data nama file dan jenis ekstensi dari file yang ditambahakan untuk disimpan, maka string path yang telah di input dipotong dengan menggunakan `ptr1 = strrchr( path, slash )` dan untuk mengambil data nama file. Selain itu digunakan juga fungsi `ptr2 = strrchr( path, dot)` untuk mengambil data nama ekstensi file. Lalu dipanggil juga fungsi `void writefile()` untuk memasukkan data yang diinginkan ke dalam folder `FILES`.
+  Pada tahap ini, aplikasi client memanggil beberapa string dari fungsi add pada aplikasi server, karena diminta untuk menginput sebanyak 3 kali maka fungsi pemanggilan string dan pengiriman string dilakukan looping sebanyak 3 kali. Karena dibutuhkan juga data nama file dan jenis ekstensi dari file yang ditambahakan untuk disimpan, maka string path yang telah di input dipotong dengan menggunakan `ptr1 = strrchr( path, slash )` dan untuk mengambil data nama file. Selain itu digunakan juga fungsi `ptr2 = strrchr( path, dot)` untuk mengambil data nama ekstensi file. Lalu dipanggil juga fungsi `void writefile()` untuk memasukkan data yang diinginkan ke dalam folder `FILES`.<br>
+
+  **Output**
   
 - **Penjelasan dan Penyelesaian Soal 1d**<br>
   Pada soal ini kita diminta untuk membuat fitur dimana client dapat mendownload file yang telah ada dalam folder `FILES` di server, sehingga sistem harus dapat mengirim file ke client dengan memberikan command `download`.<br>
@@ -326,9 +334,76 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
       }
   }
   ```
-  Dimana pada client, pengguna diminta untuk menginput dengan format `namafile.extension` lalu dilakukan pencarian pada server dengan `strcmp(find,filename` untuk membandingakn string yang dicari dengan string yang sudah ada pada database. Jika ditemukan yang sama, maka file akan di dikirim ke client.
+  Dimana pada client, pengguna diminta untuk menginput dengan format `namafile.extension` lalu dilakukan pencarian pada server dengan `strcmp(find,filename` untuk membandingakn string yang dicari dengan string yang sudah ada pada database. Jika ditemukan yang sama, maka file akan di dikirim ke client.<br>
+  
+  **Output**
   
 - **Penjelasan dan Penyelesaian Soal 1e**<br>
+  Pada soal 1e kita diminta menambahkan fitur agar client juga dapat menghapus file yang tersimpan di server. Namun pada folder `FILE` file yang dihapus hanya akan diganti namanya menjadi `old-NamaFile.ekstensi`. Ketika file telah diubah namanya, maka row dari file tersebut di file.tsv akan terhapus. Fungsi yang digunakan oleh server.
+  ```
+    void delete() {
+      // sends("namafile.extension\n");
+      bRead();
+      bool flag = false;
+      char finds[1024]={0};
+      strcpy(finds,recieve);
+      printf("%s\n",finds);
+      FILE* fileR = fopen("files.tsv","r");
+      FILE* fileW = fopen("temp.tsv","w");
+      char data[1024] = {0};
+      char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+      while(fgets(data,1024,fileR)!=NULL){
+          sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+          if (strcmp(filename,finds)!=0) {
+          fprintf(fileW,"%s",data);
+          } 
+          if (strcmp(filename,finds)==0){
+              flag = true;
+          }
+          bzero(data,1024);
+      }
+      fclose(fileW);
+      fclose(fileR);
+      if (flag == true) {
+      remove("files.tsv");
+      rename("temp.tsv","files.tsv");
+      FILE* log = fopen("running.log","a");
+      fprintf(log,"Hapus: %s %s",finds,upass);
+      fclose(log);
+      char oldFile[200]= {0};
+      char renamed[200]={0};
+      char temp[104]="/home/zulfa/Documents/modul3/shift3/FILES/";
+      strcat(oldFile,temp);
+      strcat(renamed,temp);
+      strcat(oldFile,finds);
+      strcat(renamed,"old-");
+      strcat(renamed,finds);
+  //    printf("d");
+      rename(oldFile,renamed);
+      sends("Delete sukses\n");
+      }
+      else {
+          sends("File tidak ditemukan\n");
+      }
+  }
+
+  ```
+  Fungsi ini dipanggil dengan fungsi pada aplikasi client
+  ```
+    void delete() {
+      // resR();
+      char temp[1024];
+      scanf("%s",temp);
+      temp[strcspn(temp,"\n")]=0;
+      sends(temp);
+      resR();
+  }
+  ```
+  Pada client diminta untuk menginput nama file yang ingin dihapus dengan format `namafile.ekstensi`. Lalu, setelah itu string dikirim ke server untuk nantinya dilakukan fungsi pencarian, pada pencarian string tersebut akan dibandingakan dengan data string yang terdapat pada file `files.tsv`. Pada proses ini dilakukan looping sebanyak data yang terdapat pada database. Jika string yang dibandingkan berbeda, maka data tersebut akan dipindahkan fe file baru yang diberi nama `temp.tsv`, jika string yang dibandingkan sama, maka data tidak akan di-copy ke file `temp.tsv`. Setelah proses looping selesai, server akan menghapus file `files.tsv` lalu file `temp.tsv` akan diubah namanya menjadi `files.tsv`.<br>
+  Selain itu dilakukan juga perbandingan string dengan files yang terdapat pada folder`FILES`. Jika ditemukan file dengan nama string yang sama, maka file tersebut akan direname menjadi `old-NamaFile.ekstensi`.<br>
+  
+  **Output**
+  
 - **Penjelasan dan Penyelesaian Soal 1f**<br>
 - **Penjelasan dan Penyelesaian Soal 1g**<br>
 - **Penjelasan dan Penyelesaian Soal 1h**<br>
