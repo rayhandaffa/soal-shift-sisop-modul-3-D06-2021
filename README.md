@@ -334,12 +334,12 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
       }
   }
   ```
-  Dimana pada client, pengguna diminta untuk menginput dengan format `namafile.extension` lalu dilakukan pencarian pada server dengan `strcmp(find,filename` untuk membandingakn string yang dicari dengan string yang sudah ada pada database. Jika ditemukan yang sama, maka file akan di dikirim ke client.<br>
+  Dimana pada client, pengguna diminta untuk menginput dengan format `namafile.extension` lalu dilakukan pencarian pada server dengan `strcmp(find,filename)` untuk membandingakn string yang dicari dengan string yang sudah ada pada database. Jika ditemukan yang sama, maka file akan di dikirim ke client.<br>
   
   **Output**
   
 - **Penjelasan dan Penyelesaian Soal 1e**<br>
-  Pada soal 1e kita diminta menambahkan fitur agar client juga dapat menghapus file yang tersimpan di server. Namun pada folder `FILE` file yang dihapus hanya akan diganti namanya menjadi `old-NamaFile.ekstensi`. Ketika file telah diubah namanya, maka row dari file tersebut di file.tsv akan terhapus. Fungsi yang digunakan oleh server.
+  Pada soal 1e kita diminta menambahkan fitur agar client juga dapat menghapus file yang tersimpan di server. Namun pada folder `FILE` file yang dihapus hanya akan diganti namanya menjadi `old-NamaFile.ekstensi`. Ketika file telah diubah namanya, maka row dari file tersebut di file.tsv akan terhapus. Fitur ini dipanggil dengan menggunakan command `delete` pada client. Fungsi yang digunakan oleh server.
   ```
     void delete() {
       // sends("namafile.extension\n");
@@ -405,13 +405,127 @@ Pada soal 1 ini kita diminta untuk membuat program client dan server untuk membu
   **Output**
   
 - **Penjelasan dan Penyelesaian Soal 1f**<br>
+  Pada soal 1f kita diminta untuk membuat fitur see dimana client dapat melihat semua isi `files.tsv`. Fungsi ini dipanggil dengan memberikan command `see` pada client. Fungsi yang digunakan oleh server.
+  ```
+    void see() {
+      FILE* fileR = fopen("files.tsv","r");
+      char data[1024] = {0};
+      char tosend[10000]={0};
+      char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+      while(fgets(data,1024,fileR)!=NULL){
+          sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+          char tosendbuff [1024];
+          sprintf(tosendbuff,"Nama: %s\nPublisher: %s\nTahun Publish: %s\nExtensi File: %s\nFilepath: %s\n\n",filename,publisher,tahun,ext,filepath);
+          strcat(tosend,tosendbuff);
+          bzero(data,1024);
+      }
+      fclose(fileR);
+      sends(tosend);
+  }
+  ```
+  Fungsi ini dipanggil dengan fungsi pada aplikasi client.
+  ```
+    void see(){
+      char bigbuff[10000];
+      read (sock,bigbuff,10000);
+      printf("%s\n",bigbuff);
+      memset(bigbuff,0,sizeof(bigbuff));  
+  }
+  ```
+  Setelah memasukkan command `see` server akan membuka file `files.tsv` lalu mengcopy semua string pada file tersebut dengan cara looping sebanyak banyaknya data dengan format.
+  ```
+    Nama:
+    Publisher:
+    Tahun publishing:
+    Ekstensi File : 
+    Filepath : 
+  ```
+  Lalu string ini dikirim satu persatu ke client untuk di print.<br>
+  
+  **Output**
+  
 - **Penjelasan dan Penyelesaian Soal 1g**<br>
+Pada soal 1g kita diminta untuk membuat fitur pencarian dengan memberikan suatu string. Hasilnya adalah semua nama file yang mengandung string tersebut. Fungsi yang digunakan oleh server.
+  ```
+    void find()
+    {
+        bRead();
+        FILE* fileR = fopen("files.tsv","r");
+        char find[200];
+        bool flag = false;
+        char data[1024] = {0};
+        char tosend[10000]={0};
+        char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+        strcpy(find,recieve);
+        while(fgets(data,1024,fileR)!=NULL){
+               sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+               char tosendbuff [1024];
+               sprintf(tosendbuff,"Nama: %s\nPublisher: %s\nTahun Publish: %s\nExtensi File: %s\nFilepath: %s\n\n",filename,publisher,tahun,ext,filepath);
+               char * beep;
+               beep = strstr(filename,find);
+               if(beep!=NULL){
+                   flag=true;
+                strcat(tosend,tosendbuff);   
+               }
+               bzero(data,1024);
+           }
+           fclose(fileR);
+           if (!flag){
+               sends("File tidak ditemukan\n");
+           }
+           else {
+               sends(tosend);
+           }
+    }
+  ```
+  Fungsi ini dipanggil dengan fungsi pada aplikasi client.
+    ```
+      void find(){
+          printf("Masukkan nama file\n");
+          char find[200] = {0};
+          scanf("%s",find);
+          find[strcspn(find,"\n")]=0;
+          sends(find);
+          resR();
+      }
+    ```
+    Setelah client memberikan string untuk mencari file, lalu dilakukan pencarian pada server dengan untuk membandingakn string yang dicari dengan string yang sudah ada pada database. Pada pembandingan string ini digunakan `strstr(filename,find)` agar nantinya string pada server akan dianggap benar jika memiliki string yang dicari (tidak harus sama persis dengan string yang dicari). Jika ditemukan yang sama, maka file akan ditampilkan dengan format
+  ```
+    Nama:
+    Publisher:
+    Tahun publishing:
+    Ekstensi File : 
+    Filepath : 
+  ```
+  
+  **Output**
+  
 - **Penjelasan dan Penyelesaian Soal 1h**<br>
+Pada soal 1h kita diminta untuk mencatat penambahan dan penghapusan file pada server di `running.log`. Oleh karena itu pada saat memanggil fingsi menambahakan dan menghapus file pada server ditambahkan fungsi untuk mencatat pada `running.log`.
+  ```
+    void Add() { 
+        ...
+        FILE* log = fopen("running.log","a");
+        fprintf(log,"Tambah: %s %s",fname,upass);
+        fclose(log);
+    }
+  ```
+  ```
+    void delete() {
+        ...
+        FILE* log = fopen("running.log","a");
+        fprintf(log,"Hapus: %s %s",finds,upass);
+        fclose(log);
+        ...
+    }
+  ```
+  
+  **Output**
+  
 ## Kendala yang dialami
   1. Pada 1d output yang keluar pada terminal client masih bermasalah jika dilanjutkan dengan input baru.
   2. xx
   3. xx
-## Output
 
 ## Penjelasan dan Penyelesaian soal no.2
 - **Penjelasan dan Penyelesaian Soal 2a**<br>
